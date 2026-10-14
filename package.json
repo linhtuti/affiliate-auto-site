@@ -1,0 +1,9 @@
+{
+  "name": "affiliate-tiktok-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tiktok-demo.test.js",
+    "start": "node tiktok-demo-server.js"
+  }
+}
