@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTikTokAuthorizeUrl, getConfiguredScopes, isAllowedPrivacy } from './tiktok-demo-server.js';
+import { buildTikTokAuthorizeUrl, getConfiguredScopes, isAllowedPrivacy, isCommercialDisclosureValid } from './tiktok-demo-server.js';
 
 test('builds a TikTok authorize URL without exposing the client secret', () => {
   const url = buildTikTokAuthorizeUrl({
@@ -14,6 +14,7 @@ test('builds a TikTok authorize URL without exposing the client secret', () => {
   assert.equal(parsed.searchParams.get('client_key'), 'sandbox-key');
   assert.equal(parsed.searchParams.get('redirect_uri'), 'https://example.com/auth/tiktok/callback');
   assert.equal(parsed.searchParams.get('state'), 'state-123');
+  assert.equal(parsed.searchParams.get('disable_auto_auth'), '1');
   assert.equal(parsed.searchParams.has('client_secret'), false);
 });
 
@@ -24,4 +25,12 @@ test('uses only the scopes required for the demo', () => {
 test('accepts only TikTok privacy levels supported by the demo', () => {
   assert.equal(isAllowedPrivacy('SELF_ONLY'), true);
   assert.equal(isAllowedPrivacy('PUBLIC_TO_EVERYONE'), false);
+  assert.equal(isAllowedPrivacy('PUBLIC_TO_EVERYONE', { sandbox: false }), true);
+});
+
+test('requires a commercial disclosure choice when commercial content is enabled', () => {
+  assert.equal(isCommercialDisclosureValid({ commercial: false, yourBrand: false, brandedContent: false }), true);
+  assert.equal(isCommercialDisclosureValid({ commercial: true, yourBrand: true, brandedContent: false }), true);
+  assert.equal(isCommercialDisclosureValid({ commercial: true, yourBrand: false, brandedContent: true }), true);
+  assert.equal(isCommercialDisclosureValid({ commercial: true, yourBrand: false, brandedContent: false }), false);
 });
